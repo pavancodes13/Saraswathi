@@ -1,98 +1,190 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import ActivityItem from "@/components/home/ActivityItem";
+import Header from "@/components/home/Header";
+import QuickAction from "@/components/home/QuickAction";
+import SummaryCard from "@/components/home/SummaryCard";
+import TaskItem from "@/components/home/TaskItem";
+import { supabase } from "@/lib/supabase";
+import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+export default function Home() {
+  const [totalWorkers, setTotalWorkers] = useState(0);
+  const [todayPresent, setTodayPresent] = useState(0);
+  const [completedProjects, setCompletedProjects] = useState(0);
+  const [totalProjects, setTotalProjects] = useState(0);
+  useEffect(() => {
+    loadDashboard();
+  }, []);
 
-export default function HomeScreen() {
+  async function loadDashboard() {
+    try {
+      const today = new Date().toISOString().split("T")[0];
+
+      // Total Workers
+      const { count: workerCount, error: workerError } = await supabase
+        .from("profiles")
+        .select("*", {
+          count: "exact",
+          head: true,
+        });
+
+      if (workerError) throw workerError;
+
+      // Total Projects
+      const { count: totalProjectCount, error: totalProjectError } =
+        await supabase.from("projects").select("*", {
+          count: "exact",
+          head: true,
+        });
+
+      if (totalProjectError) throw totalProjectError;
+
+      // Completed Projects
+      const { count: completedProjectCount, error: completedProjectError } =
+        await supabase
+          .from("projects")
+          .select("*", {
+            count: "exact",
+            head: true,
+          })
+          .eq("status", "Completed");
+
+      if (completedProjectError) throw completedProjectError;
+
+      setTotalProjects(totalProjectCount ?? 0);
+      setCompletedProjects(completedProjectCount ?? 0);
+
+      // Today's Attendance
+      const { count: presentCount, error: attendanceError } = await supabase
+        .from("attendance")
+        .select("*", {
+          count: "exact",
+          head: true,
+        })
+        .eq("attendance_date", today)
+        .eq("status", "Present");
+
+      if (attendanceError) throw attendanceError;
+
+      setTotalWorkers(workerCount ?? 0);
+      setTodayPresent(presentCount ?? 0);
+    } catch (error) {
+      console.log("Dashboard Error:", error);
+    }
+  }
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <View style={styles.container}>
+      <Header />
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+      >
+        {/* Dashboard */}
+
+        <View style={styles.grid}>
+          <SummaryCard
+            icon="people"
+            title="Workers"
+            value={`${todayPresent} / ${totalWorkers}`}
+            color="#3B82F6"
+            onPress={() => router.push("/menu/workers")}
+          />
+
+          <SummaryCard
+            icon="briefcase"
+            title="Projects"
+            value="6 Running"
+            color="#10B981"
+            onPress={() => router.push("/menu/projects")}
+          />
+
+          <SummaryCard
+            icon="cube"
+            title="Finalized"
+            value={`${completedProjects} / ${totalProjects}`}
+            color="#F59E0B"
+            onPress={() => router.push("/menu/finalized")}
+          />
+
+          <SummaryCard
+            icon="grid"
+            title="Rack Finder"
+            value="Search"
+            color="#8B5CF6"
+            onPress={() => router.push("/menu/racks")}
+          />
+        </View>
+
+        {/* Quick Actions */}
+
+        <Text style={styles.heading}>Quick Actions</Text>
+
+        <View style={styles.quickActions}>
+          <QuickAction title="Worker" icon="person-add" color="#2563EB" />
+
+          <QuickAction title="Project" icon="briefcase" color="#10B981" />
+
+          <QuickAction title="Item" icon="cube" color="#F59E0B" />
+
+          <QuickAction title="Rack" icon="grid" color="#8B5CF6" />
+        </View>
+
+        {/* Tasks */}
+
+        <Text style={styles.heading}>Today's Tasks</Text>
+
+        <TaskItem title="Paint Machine" completed />
+
+        <TaskItem title="Steel Cutting" />
+
+        <TaskItem title="Repair Generator" />
+
+        {/* Activity */}
+
+        <Text style={styles.heading}>Recent Activity</Text>
+
+        <ActivityItem title="Rahul marked attendance" time="10 min ago" />
+
+        <ActivityItem title="Paint stock updated" time="35 min ago" />
+
+        <ActivityItem title="Steel moved to Rack A-03" time="1 hour ago" />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: "#1f2123",
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+
+  content: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+
+  heading: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#111827",
+    marginTop: 20,
+    marginBottom: 15,
+  },
+
+  quickActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 15,
   },
 });
