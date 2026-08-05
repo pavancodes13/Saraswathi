@@ -159,7 +159,8 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1f2123",
+    // backgroundColor: "#1f2123",
+    backgroundImage: "./assets/images/bg.jpg",
   },
 
   content: {
