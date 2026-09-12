@@ -3,14 +3,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function Login() {
@@ -55,7 +55,7 @@ export default function Login() {
     <SafeAreaView style={styles.container}>
       <View style={styles.card}>
         <Text style={styles.logo}>🏭</Text>
-
+        <Text style={styles.title}>Saraswati Enterprises</Text>
         <Text style={styles.title}>Workshop Login</Text>
 
         <TextInput

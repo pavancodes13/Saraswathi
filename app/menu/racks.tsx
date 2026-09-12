@@ -60,7 +60,7 @@ export default function Racks() {
     const response = await fetch(image.uri);
     const blob = await response.blob();
     const { error } = await supabase.storage
-      .from("rack-images")
+      .from("image")
       .upload(fileName, blob, {
         contentType: "image/jpeg",
       });
@@ -68,9 +68,7 @@ export default function Racks() {
       console.log(error);
       return null;
     }
-    const { data } = supabase.storage
-      .from("rack-images")
-      .getPublicUrl(fileName);
+    const { data } = supabase.storage.from("image").getPublicUrl(fileName);
     return data.publicUrl;
   }
 
@@ -136,14 +134,15 @@ export default function Racks() {
           ListEmptyComponent={<Text style={styles.empty}>No Items Found</Text>}
           renderItem={({ item }) => (
             <View style={styles.card}>
-              {item.image && (
-                <Image source={{ uri: item.image }} style={styles.image} />
-              )}
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 1, paddingRight: 12 }}>
                 <Text style={styles.itemName}>{item.item_name}</Text>
-                <Text>Category : {item.category}</Text>
-                <Text>Quantity : {item.quantity}</Text>
-                <Text>Rack : {item.rack_no}</Text>
+                <Text style={styles.meta}>
+                  Category : {item.category || "-"}
+                </Text>
+                <Text style={styles.meta}>Quantity : {item.quantity}</Text>
+                <Text style={styles.rackTextHighlight}>
+                  Rack : {item.rack_no}
+                </Text>
                 <View style={styles.row}>
                   <TouchableOpacity
                     style={styles.update}
@@ -159,6 +158,22 @@ export default function Racks() {
                   </TouchableOpacity>
                 </View>
               </View>
+
+              {item.image ? (
+                <Image source={{ uri: item.image }} style={styles.listImage} />
+              ) : (
+                <View style={[styles.listImage, styles.noListImage]}>
+                  <Text
+                    style={{
+                      color: "#9CA3AF",
+                      fontSize: 11,
+                      fontWeight: "600",
+                    }}
+                  >
+                    No Image
+                  </Text>
+                </View>
+              )}
             </View>
           )}
         />
@@ -212,7 +227,6 @@ export default function Racks() {
                 <Text style={styles.dropdownArrow}>▼</Text>
               </TouchableOpacity>
 
-              {/* IMAGE BESIDE BUTTON */}
               <Text style={styles.label}>Item Image</Text>
               <View style={styles.imageRow}>
                 <TouchableOpacity
@@ -311,18 +325,47 @@ const styles = StyleSheet.create({
   addText: { color: "#fff", fontSize: 16, fontWeight: "700" },
   card: {
     backgroundColor: "#fff",
-    padding: 15,
+    padding: 14,
     borderRadius: 14,
     marginBottom: 12,
     flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     elevation: 2,
+    borderWidth: 1,
+    borderColor: "#F3F4F6",
   },
-  image: { width: 80, height: 80, borderRadius: 10, marginRight: 15 },
+  // NEW IMAGE STYLE FOR LIST
+  listImage: {
+    width: 90,
+    height: 90,
+    borderRadius: 12,
+    backgroundColor: "#F3F4F6",
+  },
+  noListImage: {
+    backgroundColor: "#F9FAFB",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderStyle: "dashed",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   itemName: {
     fontSize: 18,
     fontWeight: "700",
     marginBottom: 5,
     color: "#111827",
+  },
+  meta: {
+    color: "#4B5563",
+    fontSize: 13,
+    marginTop: 2,
+  },
+  rackTextHighlight: {
+    color: "#2563EB",
+    fontWeight: "700",
+    fontSize: 13,
+    marginTop: 4,
   },
   row: { flexDirection: "row", marginTop: 12, gap: 10 },
   update: {
