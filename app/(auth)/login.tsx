@@ -55,6 +55,7 @@ export default function Login() {
     <SafeAreaView style={styles.container}>
       <View style={styles.card}>
         <Text style={styles.logo}>🏭</Text>
+
         <Text style={styles.title}>Saraswati Enterprises</Text>
         <Text style={styles.title}>Workshop Login</Text>
 

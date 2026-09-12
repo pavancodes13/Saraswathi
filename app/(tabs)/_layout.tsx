@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import { router, Tabs } from "expo-router";
 
 export default function TabLayout() {
   return (
@@ -32,6 +32,14 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar" color={color} size={size} />
           ),
+        }}
+        listeners={{
+          tabPress: (e) => {
+            // Prevent default tab open
+            e.preventDefault();
+            // Open QR Scanner first
+            router.push("/scan-attendance");
+          },
         }}
       />
 
